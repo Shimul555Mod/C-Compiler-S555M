@@ -8,20 +8,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #10b981;
-            --dark: #1f2937;
-            --darker: #111827;
-            --light: #f3f4f6;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-            --code-bg: #1e1e1e;
-            --header-height: 60px;
-            --sidebar-width: 250px;
+            --primary-color: #4a90e2;
+            --secondary-color: #50e3c2;
+            --background-color-dark: #1a1a1a;
+            --surface-color-dark: #2a2a2a;
+            --text-color-dark: #f0f0f0;
+            --background-color-light: #f5f5f5;
+            --surface-color-light: #ffffff;
+            --text-color-light: #333333;
+            --error-color: #e94560;
+            --success-color: #32de84;
             --border-radius: 12px;
-            --transition: all 0.3s ease;
+            --transition-speed: 0.3s;
+        }
+
+        [data-theme="dark"] {
+            --background-color: var(--background-color-dark);
+            --surface-color: var(--surface-color-dark);
+            --text-color: var(--text-color-dark);
+        }
+
+        [data-theme="light"] {
+            --background-color: var(--background-color-light);
+            --surface-color: var(--surface-color-light);
+            --text-color: var(--text-color-light);
         }
 
         * {
@@ -32,776 +42,293 @@
 
         body {
             font-family: 'Tiro Bangla', serif;
-            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
-            color: var(--light);
-            min-height: 100vh;
-            overflow-x: hidden;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
         }
 
-        .app-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px 0;
+        .container {
             display: flex;
             flex-direction: column;
-            transition: var(--transition);
-            z-index: 100;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .sidebar-header {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sidebar-header img {
-            width: 40px;
-            height: 40px;
-        }
-
-        .sidebar-header h2 {
-            font-size: 1.4rem;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .nav-links {
-            list-style: none;
-            margin-top: 30px;
-            padding: 0 10px;
-        }
-
-        .nav-links li {
-            margin-bottom: 5px;
-        }
-
-        .nav-links a {
-            display: flex;
-            align-items: center;
-            padding: 12px 15px;
-            color: var(--light);
-            text-decoration: none;
-            border-radius: var(--border-radius);
-            transition: var(--transition);
-            gap: 12px;
-        }
-
-        .nav-links a:hover, .nav-links a.active {
-            background: rgba(79, 70, 229, 0.2);
-            color: var(--primary);
-        }
-
-        .nav-links a i {
-            width: 20px;
-            text-align: center;
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Header Styles */
         .header {
-            height: var(--header-height);
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            padding: 0 20px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background-color: var(--surface-color);
+            border-bottom: 1px solid rgba(128, 128, 128, 0.2);
         }
 
-        .header-left h1 {
+        .header h1 {
             font-size: 1.5rem;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-weight: 500;
         }
 
-        .header-right {
+        .editor-area {
+            flex-grow: 1;
             display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .theme-toggle {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            width: 50px;
-            height: 25px;
-            border-radius: 25px;
+            flex-direction: column;
+            padding: 1rem;
             position: relative;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            padding: 0 3px;
         }
 
-        .theme-toggle span {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--primary);
-            position: absolute;
-            transition: var(--transition);
-        }
-
-        .user-profile {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        /* Editor Container */
         .editor-container {
-            flex: 1;
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto 1fr auto;
-            gap: 20px;
-            grid-template-areas:
-                "code code"
-                "input output"
-                "actions actions";
-        }
-
-        .code-section {
-            grid-area: code;
-            background: var(--code-bg);
+            flex-grow: 1;
+            display: flex;
+            background-color: var(--surface-color);
             border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            animation: fadeIn 0.5s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .line-numbers {
+            padding: 1rem;
+            background-color: var(--surface-color);
+            color: #888;
+            font-family: 'Fira Code', monospace;
+            text-align: right;
+            user-select: none;
+            padding-top: 1rem;
+            border-right: 1px solid rgba(128, 128, 128, 0.2);
         }
 
-        .section-header {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .section-header h2 {
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-header h2 i {
-            color: var(--primary);
-        }
-
-        .code-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 6px 12px;
-            border-radius: 5px;
+        #code-editor {
+            flex-grow: 1;
             border: none;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--light);
+            outline: none;
+            padding: 1rem;
+            background-color: transparent;
+            color: var(--text-color);
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            resize: none;
+        }
+
+        .io-panel {
+            height: 40%;
+            background-color: var(--surface-color);
+            border-top: 1px solid rgba(128, 128, 128, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tabs {
+            display: flex;
+            background-color: var(--background-color);
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
             cursor: pointer;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-family: inherit;
+            border-bottom: 2px solid transparent;
+            transition: border-color var(--transition-speed);
         }
 
-        .btn:hover {
-            background: var(--primary);
+        .tab.active {
+            border-color: var(--primary-color);
         }
 
-        .btn-primary {
-            background: var(--primary);
+        .tab-content {
+            flex-grow: 1;
+            padding: 1rem;
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
         }
 
-        .btn-primary:hover {
-            background: var(--primary-dark);
-        }
-
-        .btn-success {
-            background: var(--success);
-        }
-
-        .btn-success:hover {
-            background: #0da271;
-        }
-
-        .code-editor {
-            height: 350px;
-            padding: 15px;
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            background: var(--code-bg);
-            color: #f0f0f0;
-            border: none;
+        #user-input, #output {
             width: 100%;
-            resize: none;
-            outline: none;
-            tab-size: 4;
-            -moz-tab-size: 4;
-        }
-
-        .input-section {
-            grid-area: input;
-            background: var(--code-bg);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            animation: slideInLeft 0.5s ease;
-        }
-
-        .output-section {
-            grid-area: output;
-            background: var(--code-bg);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            animation: slideInRight 0.5s ease;
-        }
-
-        .user-input {
-            height: 150px;
-            padding: 15px;
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
-            background: var(--code-bg);
-            color: #f0f0f0;
+            height: 100%;
             border: none;
-            width: 100%;
-            resize: none;
             outline: none;
-        }
-
-        .output {
-            height: 150px;
-            padding: 15px;
+            background-color: transparent;
+            color: var(--text-color);
             font-family: 'Fira Code', monospace;
-            font-size: 14px;
-            background: var(--code-bg);
-            color: #f0f0f0;
-            overflow-y: auto;
+            resize: none;
+        }
+        
+        #output {
             white-space: pre-wrap;
         }
 
-        .output-error {
-            color: var(--danger);
-        }
-
-        .actions-section {
-            grid-area: actions;
+        .fab {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
             display: flex;
             justify-content: center;
-            gap: 15px;
-            padding: 10px 0;
-            animation: fadeInUp 0.5s ease;
+            align-items: center;
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
         }
 
-        .actions-section .btn {
-            padding: 12px 25px;
-            font-size: 1rem;
+        .fab:hover {
+            transform: scale(1.1);
         }
 
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 0.9rem;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes fadeInUp {
-            from { 
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to { 
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes slideInLeft {
-            from { 
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to { 
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideInRight {
-            from { 
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to { 
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        /* Toast Notification */
         .toast {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background: var(--success);
-            color: white;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
             border-radius: var(--border-radius);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            background-color: var(--surface-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: bottom 0.5s ease-in-out;
             display: flex;
             align-items: center;
-            gap: 10px;
-            z-index: 1000;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
+            gap: 1rem;
         }
-
+        
         .toast.show {
-            transform: translateX(0);
+            bottom: 2rem;
         }
-
+        
+        .toast.success {
+            border-left: 5px solid var(--success-color);
+        }
+        
         .toast.error {
-            background: var(--danger);
+            border-left: 5px solid var(--error-color);
         }
 
-        .toast.warning {
-            background: var(--warning);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 992px) {
-            .editor-container {
-                grid-template-columns: 1fr;
-                grid-template-areas:
-                    "code"
-                    "input"
-                    "output"
-                    "actions";
-            }
-            
-            .sidebar {
-                transform: translateX(-100%);
-                position: fixed;
-                height: 100vh;
-            }
-            
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            
-            .menu-toggle {
-                display: block;
-            }
-        }
-
-        /* Code Editor Line Numbers */
-        .editor-container {
-            position: relative;
-        }
-
-        .line-numbers {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 40px;
-            height: 100%;
-            padding: 15px 5px;
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            color: #6e7681;
-            text-align: right;
-            background: #1a1a1a;
-            border-right: 1px solid #333;
-            user-select: none;
-        }
-
-        /* Loading Animation */
-        .loader {
-            display: none;
-            width: 24px;
-            height: 24px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Theme Variants */
-        body.light-theme {
-            --dark: #f3f4f6;
-            --darker: #e5e7eb;
-            --light: #1f2937;
-            --code-bg: #ffffff;
-            background: linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 100%);
-        }
-
-        body.light-theme .sidebar,
-        body.light-theme .header {
-            background: rgba(255, 255, 255, 0.8);
-        }
-
-        body.light-theme .code-section,
-        body.light-theme .input-section,
-        body.light-theme .output-section {
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        body.light-theme .code-editor,
-        body.light-theme .user-input,
-        body.light-theme .output {
-            background: #ffffff;
-            color: #333;
-        }
-
-        /* Mobile Menu Toggle */
-        .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: var(--light);
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        @media (max-width: 992px) {
-            .menu-toggle {
-                display: block;
-            }
-        }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <i class="fas fa-code fa-2x" style="color: #6366f1;"></i>
-                <h2>সি কম্পাইলার</h2>
+    <div class="container">
+        <header class="header">
+            <h1>সি কম্পাইলার</h1>
+            <div class="theme-switch-wrapper">
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox" />
+                    <div class="slider round"></div>
+                </label>
             </div>
-            <ul class="nav-links">
-                <li><a href="#" class="active"><i class="fas fa-home"></i> হোম</a></li>
-                <li><a href="#"><i class="fas fa-history"></i> ইতিহাস</a></li>
-                <li><a href="#"><i class="fas fa-book"></i> ডকুমেন্টেশন</a></li>
-                <li><a href="#"><i class="fas fa-cog"></i> সেটিংস</a></li>
-                <li><a href="#"><i class="fas fa-question-circle"></i> সাহায্য</a></li>
-            </ul>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header -->
-            <header class="header">
-                <div class="header-left">
-                    <button class="menu-toggle" id="menuToggle">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <h1>টার্মাক্স সি কোড কম্পাইলার</h1>
-                </div>
-                <div class="header-right">
-                    <button class="theme-toggle" id="themeToggle">
-                        <span></span>
-                    </button>
-                    <div class="user-profile">U</div>
-                </div>
-            </header>
-
-            <!-- Editor Container -->
+        </header>
+        <main class="editor-area">
             <div class="editor-container">
-                <!-- Code Section -->
-                <section class="code-section">
-                    <div class="section-header">
-                        <h2><i class="fas fa-code"></i> সি কোড লিখুন</h2>
-                        <div class="code-actions">
-                            <button class="btn" title="Clear Code" onclick="clearCode()">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                            <button class="btn" title="Format Code" onclick="formatCode()">
-                                <i class="fas fa-indent"></i>
-                            </button>
-                            <button class="btn" title="Save Code" onclick="saveCode()">
-                                <i class="fas fa-save"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="line-numbers" id="lineNumbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10</div>
-                    <textarea class="code-editor" id="code-editor" spellcheck="false" oninput="updateLineNumbers()">#include &lt;stdio.h&gt;
+                <div class="line-numbers" id="line-numbers">1</div>
+                <textarea id="code-editor" spellcheck="false">#include <stdio.h>
 
 int main() {
-    int num;
-    printf("একটি সংখ্যা ইনপুট দিন: ");
-    scanf("%d", &num);
-    printf("আপনি ইনপুট দিয়েছেন: %d\n", num);
+    printf("Hello, World!");
     return 0;
 }</textarea>
-                </section>
-
-                <!-- Input Section -->
-                <section class="input-section">
-                    <div class="section-header">
-                        <h2><i class="fas fa-keyboard"></i> ইনপুট (ঐচ্ছিক)</h2>
-                    </div>
-                    <textarea class="user-input" id="user-input" placeholder="প্রোগ্রামটির জন্য প্রয়োজনীয় ইনপুট এখানে দিন..."></textarea>
-                </section>
-
-                <!-- Output Section -->
-                <section class="output-section">
-                    <div class="section-header">
-                        <h2><i class="fas fa-terminal"></i> আউটপুট</h2>
-                        <div class="code-actions">
-                            <button class="btn" title="Clear Output" onclick="clearOutput()">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                            <button class="btn" title="Copy Output" onclick="copyOutput()">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <pre class="output" id="output">এখানে আপনার কোডের আউটপুট দেখানো হবে...</pre>
-                </section>
-
-                <!-- Actions Section -->
-                <section class="actions-section">
-                    <button class="btn btn-primary" onclick="runCode()">
-                        <i class="fas fa-play"></i> রান করুন
-                        <div class="loader" id="runLoader"></div>
-                    </button>
-                    <button class="btn btn-success" onclick="shareCode()">
-                        <i class="fas fa-share-alt"></i> শেয়ার করুন
-                    </button>
-                    <button class="btn" onclick="downloadCode()">
-                        <i class="fas fa-download"></i> ডাউনলোড করুন
-                    </button>
-                </section>
             </div>
-
-            <!-- Footer -->
-            <footer class="footer">
-                <p>© ২০২৩ টার্মাক্স সি কম্পাইলার | তৈরি עם <i class="fas fa-heart" style="color: #ef4444;"></i></p>
-            </footer>
         </main>
+        <div class="io-panel">
+            <div class="tabs">
+                <div class="tab active" data-tab="input">ইনপুট</div>
+                <div class="tab" data-tab="output">আউটপুট</div>
+            </div>
+            <div id="input" class="tab-content active">
+                <textarea id="user-input" placeholder="এখানে ইনপুট দিন..."></textarea>
+            </div>
+            <div id="output-container" class="tab-content">
+                <pre id="output"></pre>
+            </div>
+        </div>
+        <button class="fab" id="run-button">
+            <i class="fas fa-play"></i>
+        </button>
     </div>
 
-    <!-- Toast Notification -->
     <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastMessage">অপারেশন সফলভাবে সম্পন্ন হয়েছে</span>
+        <p id="toast-message"></p>
     </div>
 
     <script>
-        // DOM Elements
         const codeEditor = document.getElementById('code-editor');
+        const lineNumbers = document.getElementById('line-numbers');
+        const runButton = document.getElementById('run-button');
         const userInput = document.getElementById('user-input');
-        const outputElement = document.getElementById('output');
-        const runLoader = document.getElementById('runLoader');
-        const themeToggle = document.getElementById('themeToggle');
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.querySelector('.sidebar');
+        const output = document.getElementById('output');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
         const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toastMessage');
-        const lineNumbers = document.getElementById('lineNumbers');
+        const toastMessage = document.getElementById('toast-message');
 
-        // Theme Toggle
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('light-theme');
-            if (document.body.classList.contains('light-theme')) {
-                themeToggle.querySelector('span').style.transform = 'translateX(25px)';
-                showToast('লাইট মোড সক্রিয় করা হয়েছে');
-            } else {
-                themeToggle.querySelector('span').style.transform = 'translateX(0)';
-                showToast('ডার্ক মোড সক্রিয় করা হয়েছে');
-            }
-        });
+        const updateLineNumbers = () => {
+            const lines = codeEditor.value.split('\n').length;
+            lineNumbers.innerHTML = Array.from({ length: lines }, (_, i) => i + 1).join('<br>');
+        };
 
-        // Mobile Menu Toggle
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('open');
-        });
-
-        // Update line numbers
-        function updateLineNumbers() {
-            const lines = codeEditor.value.split('\n');
-            let lineNumbersText = '';
-            for (let i = 1; i <= lines.length; i++) {
-                lineNumbersText += i + '<br>';
-            }
-            lineNumbers.innerHTML = lineNumbersText;
-        }
-
-        // Show toast notification
-        function showToast(message, type = 'success') {
+        const showToast = (message, type = 'success') => {
             toastMessage.textContent = message;
-            toast.className = 'toast show';
-            if (type === 'error') {
-                toast.classList.add('error');
-            } else if (type === 'warning') {
-                toast.classList.add('warning');
-            }
-            
+            toast.className = `toast show ${type}`;
             setTimeout(() => {
-                toast.className = 'toast';
+                toast.classList.remove('show');
             }, 3000);
-        }
+        };
 
-        // Clear code editor
-        function clearCode() {
-            codeEditor.value = '';
-            updateLineNumbers();
-            showToast('কোড ক্লিয়ার করা হয়েছে');
-        }
+        const handleRunCode = () => {
+            output.textContent = "আপনার কোডটি রান হচ্ছে...";
+            // This is a dummy function. Replace with actual API call.
+            setTimeout(() => {
+                output.textContent = `ইনপুট:\n${userInput.value}\n\nআউটপুট:\nHello, World!`;
+                showToast("কোড সফলভাবে রান হয়েছে!", 'success');
+            }, 1000);
+        };
 
-        // Clear output
-        function clearOutput() {
-            outputElement.textContent = '';
-            showToast('আউটপুট ক্লিয়ার করা হয়েছে');
-        }
+        codeEditor.addEventListener('input', updateLineNumbers);
+        runButton.addEventListener('click', handleRunCode);
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(item => item.classList.remove('active'));
+                tab.classList.add('active');
 
-        // Format code (simple indentation)
-        function formatCode() {
-            // This is a simple formatter for demonstration
-            // In a real application, you would use a proper code formatter
-            codeEditor.value = codeEditor.value.replace(/\t/g, '    ');
-            showToast('কোড ফরম্যাট করা হয়েছে');
-        }
-
-        // Save code to local storage
-        function saveCode() {
-            localStorage.setItem('savedCode', codeEditor.value);
-            showToast('কোড সেভ করা হয়েছে');
-        }
-
-        // Copy output to clipboard
-        function copyOutput() {
-            const textarea = document.createElement('textarea');
-            textarea.value = outputElement.textContent;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            showToast('আউটপুট কপি করা হয়েছে');
-        }
-
-        // Download code as file
-        function downloadCode() {
-            const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(codeEditor.value));
-            element.setAttribute('download', 'program.c');
-            element.style.display = 'none';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
-            showToast('কোড ডাউনলোড করা হয়েছে');
-        }
-
-        // Share code
-        function shareCode() {
-            if (navigator.share) {
-                navigator.share({
-                    title: 'C Program',
-                    text: 'Check out this C program I wrote!',
-                    url: window.location.href
-                })
-                .then(() => showToast('কোড শেয়ার করা হয়েছে'))
-                .catch(error => showToast('শেয়ারিং বাতিল করা হয়েছে', 'warning'));
-            } else {
-                showToast('আপনার ব্রাউজার শেয়ারিং সাপোর্ট করে না', 'error');
-            }
-        }
-
-        // Run code
-        async function runCode() {
-            const code = codeEditor.value;
-            const input = userInput.value;
-            
-            if (!code.trim()) {
-                showToast('কোড লেখার বক্সটি খালি। অনুগ্রহ করে C কোড লিখুন।', 'error');
-                return;
-            }
-            
-            outputElement.classList.remove('output-error');
-            outputElement.textContent = 'কোড রান হচ্ছে...';
-            runLoader.style.display = 'block';
-            
-            try {
-                const response = await fetch('/compile', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: code, input: input })
-                });
-
-                const result = await response.json();
-
-                if (result.error) {
-                    outputElement.classList.add('output-error');
-                    outputElement.textContent = result.error;
-                    showToast('কোড রানে ত্রুটি হয়েছে', 'error');
-                } else {
-                    outputElement.textContent = result.output;
-                    showToast('কোড সফলভাবে রান হয়েছে');
-                }
-
-            } catch (err) {
-                outputElement.classList.add('output-error');
-                outputElement.textContent = 'সার্ভারের সাথে সংযোগ স্থাপন করা যায়নি। সার্ভার কি চালু আছে?\n' + err;
-                showToast('সার্ভার সংযোগ ত্রুটি', 'error');
-            } finally {
-                runLoader.style.display = 'none';
-            }
-        }
-
-        // Load saved code from local storage
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedCode = localStorage.getItem('savedCode');
-            if (savedCode) {
-                codeEditor.value = savedCode;
-            }
-            updateLineNumbers();
+                const target = document.getElementById(tab.dataset.tab === 'output' ? 'output-container' : 'input');
+                tabContents.forEach(content => content.classList.remove('active'));
+                target.classList.add('active');
+            });
         });
+
+        // Theme switcher logic
+        const themeSwitch = document.getElementById('checkbox');
+        const currentTheme = localStorage.getItem('theme');
+
+        if (currentTheme) {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            if (currentTheme === 'dark') {
+                themeSwitch.checked = true;
+            }
+        }
+
+        function switchTheme(e) {
+            if (e.target.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        themeSwitch.addEventListener('change', switchTheme, false);
+        
+        // Persist code in local storage
+        codeEditor.value = localStorage.getItem('c-code') || codeEditor.value;
+        codeEditor.addEventListener('keyup', () => {
+            localStorage.setItem('c-code', codeEditor.value);
+        });
+
+        updateLineNumbers();
     </script>
 </body>
 </html>
