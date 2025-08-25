@@ -2,333 +2,881 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Advanced Termux C Compiler</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4a90e2;
-            --secondary-color: #50e3c2;
-            --background-color-dark: #1a1a1a;
-            --surface-color-dark: #2a2a2a;
-            --text-color-dark: #f0f0f0;
-            --background-color-light: #f5f5f5;
-            --surface-color-light: #ffffff;
-            --text-color-light: #333333;
-            --error-color: #e94560;
-            --success-color: #32de84;
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --dark: #1f2937;
+            --darker: #111827;
+            --light: #f3f4f6;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --code-bg: #1e1e1e;
+            --header-height: 60px;
+            --sidebar-width: 280px;
             --border-radius: 12px;
-            --transition-speed: 0.3s;
-        }
-
-        [data-theme="dark"] {
-            --background-color: var(--background-color-dark);
-            --surface-color: var(--surface-color-dark);
-            --text-color: var(--text-color-dark);
-        }
-
-        [data-theme="light"] {
-            --background-color: var(--background-color-light);
-            --surface-color: var(--surface-color-light);
-            --text-color: var(--text-color-light);
+            --transition: all 0.3s ease;
+            --surface: #2d3748;
+            --on-surface: #e2e8f0;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             font-family: 'Tiro Bangla', serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            transition: background-color var(--transition-speed), color var(--transition-speed);
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
         }
 
-        .container {
+        .app-container {
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            background-color: var(--surface-color);
-            border-bottom: 1px solid rgba(128, 128, 128, 0.2);
-        }
-
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 500;
-        }
-
-        .editor-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
+            min-height: 100vh;
             position: relative;
         }
 
-        .editor-container {
-            flex-grow: 1;
+        /* Header Styles */
+        .header {
+            height: var(--header-height);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            padding: 0 16px;
             display: flex;
-            background-color: var(--surface-color);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .line-numbers {
-            padding: 1rem;
-            background-color: var(--surface-color);
-            color: #888;
-            font-family: 'Fira Code', monospace;
-            text-align: right;
-            user-select: none;
-            padding-top: 1rem;
-            border-right: 1px solid rgba(128, 128, 128, 0.2);
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        #code-editor {
-            flex-grow: 1;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-toggle {
+            background: none;
             border: none;
-            outline: none;
-            padding: 1rem;
-            background-color: transparent;
-            color: var(--text-color);
-            font-family: 'Fira Code', monospace;
-            font-size: 1rem;
-            resize: none;
+            color: var(--light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: var(--transition);
         }
 
-        .io-panel {
-            height: 40%;
-            background-color: var(--surface-color);
-            border-top: 1px solid rgba(128, 128, 128, 0.2);
+        .menu-toggle:active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .header-left h1 {
+            font-size: 1.2rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-action {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .header-action:active {
+            background: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
             display: flex;
             flex-direction: column;
+            padding: 16px;
+            gap: 16px;
         }
 
-        .tabs {
+        /* Tab Navigation */
+        .tab-navigation {
             display: flex;
-            background-color: var(--background-color);
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 50px;
+            padding: 4px;
+            margin-bottom: 8px;
         }
 
-        .tab {
-            padding: 0.75rem 1.5rem;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: border-color var(--transition-speed);
-        }
-
-        .tab.active {
-            border-color: var(--primary-color);
-        }
-
-        .tab-content {
-            flex-grow: 1;
-            padding: 1rem;
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-
-        #user-input, #output {
-            width: 100%;
-            height: 100%;
+        .tab-button {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 50px;
+            background: none;
             border: none;
-            outline: none;
-            background-color: transparent;
-            color: var(--text-color);
-            font-family: 'Fira Code', monospace;
-            resize: none;
+            color: var(--light);
+            font-family: inherit;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
         }
-        
-        #output {
+
+        .tab-button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Editor Container */
+        .editor-container {
+            background: var(--code-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .section-header {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-header h2 {
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-header h2 i {
+            color: var(--primary);
+        }
+
+        .code-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+        }
+
+        .btn-primary:active {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-success:active {
+            background: #0da271;
+        }
+
+        .editor-wrapper {
+            position: relative;
+        }
+
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 40px;
+            height: 100%;
+            padding: 15px 5px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #6e7681;
+            text-align: right;
+            background: #1a1a1a;
+            border-right: 1px solid #333;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        .code-editor {
+            width: 100%;
+            height: 300px;
+            padding: 15px 15px 15px 50px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            background: var(--code-bg);
+            color: #f0f0f0;
+            border: none;
+            resize: none;
+            outline: none;
+            tab-size: 4;
+            -moz-tab-size: 4;
+        }
+
+        .input-output-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .input-section, .output-section {
+            background: var(--code-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .user-input {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            background: var(--code-bg);
+            color: #f0f0f0;
+            border: none;
+            resize: none;
+            outline: none;
+        }
+
+        .output {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            background: var(--code-bg);
+            color: #f0f0f0;
+            overflow-y: auto;
             white-space: pre-wrap;
         }
 
-        .fab {
-            position: absolute;
-            bottom: 2rem;
-            right: 2rem;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-            border-radius: 50%;
+        .output-error {
+            color: var(--danger);
+        }
+
+        /* Actions Section */
+        .actions-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .action-btn {
+            padding: 16px;
+            border-radius: var(--border-radius);
             border: none;
-            color: white;
-            font-size: 1.5rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+            background: var(--surface);
+            color: var(--on-surface);
             cursor: pointer;
-            transition: transform 0.2s ease-in-out;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
         }
 
-        .fab:hover {
-            transform: scale(1.1);
+        .action-btn:active {
+            transform: scale(0.98);
+            background: var(--primary);
         }
 
+        .action-btn i {
+            font-size: 1.5rem;
+        }
+
+        .action-btn span {
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: var(--sidebar-width);
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-header img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.4rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            list-style: none;
+            margin-top: 30px;
+            padding: 0 10px;
+        }
+
+        .nav-links li {
+            margin-bottom: 5px;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            padding: 16px 15px;
+            color: var(--light);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            gap: 12px;
+        }
+
+        .nav-links a:active, .nav-links a.active {
+            background: rgba(79, 70, 229, 0.2);
+            color: var(--primary);
+        }
+
+        .nav-links a i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .sidebar-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Toast Notification */
         .toast {
             position: fixed;
-            bottom: -100px;
+            bottom: 20px;
             left: 50%;
-            transform: translateX(-50%);
-            padding: 1rem 2rem;
+            transform: translateX(-50%) translateY(100px);
+            padding: 15px 20px;
+            background: var(--success);
+            color: white;
             border-radius: var(--border-radius);
-            background-color: var(--surface-color);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            transition: bottom 0.5s ease-in-out;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
             display: flex;
             align-items: center;
-            gap: 1rem;
-        }
-        
-        .toast.show {
-            bottom: 2rem;
-        }
-        
-        .toast.success {
-            border-left: 5px solid var(--success-color);
-        }
-        
-        .toast.error {
-            border-left: 5px solid var(--error-color);
+            gap: 10px;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            max-width: 90%;
         }
 
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.warning {
+            background: var(--warning);
+        }
+
+        /* Loader */
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Theme variants */
+        body.light-theme {
+            --dark: #f3f4f6;
+            --darker: #e5e7eb;
+            --light: #1f2937;
+            --code-bg: #ffffff;
+            --surface: #ffffff;
+            --on-surface: #4b5563;
+            background: linear-gradient(135deg, #e5e7eb 0%, #f3f4f6 100%);
+        }
+
+        body.light-theme .header {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        body.light-theme .code-section,
+        body.light-theme .input-section,
+        body.light-theme .output-section {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body.light-theme .code-editor,
+        body.light-theme .user-input,
+        body.light-theme .output {
+            background: #ffffff;
+            color: #333;
+        }
+
+        body.light-theme .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        body.light-theme .nav-links a {
+            color: var(--dark);
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            .header-left h1 {
+                font-size: 1.5rem;
+            }
+            
+            .input-output-container {
+                flex-direction: row;
+            }
+            
+            .input-section, .output-section {
+                flex: 1;
+            }
+            
+            .actions-section {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="app-container">
+        <!-- Header -->
         <header class="header">
-            <h1>সি কম্পাইলার</h1>
-            <div class="theme-switch-wrapper">
-                <label class="theme-switch" for="checkbox">
-                    <input type="checkbox" id="checkbox" />
-                    <div class="slider round"></div>
-                </label>
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>টার্মাক্স সি কম্পাইলার</h1>
+            </div>
+            <div class="header-right">
+                <button class="header-action" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="header-action" onclick="runCode()">
+                    <i class="fas fa-play"></i>
+                </button>
             </div>
         </header>
-        <main class="editor-area">
-            <div class="editor-container">
-                <div class="line-numbers" id="line-numbers">1</div>
-                <textarea id="code-editor" spellcheck="false">#include <stdio.h>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-button active" data-tab="editor">এডিটর</button>
+                <button class="tab-button" data-tab="input-output">ইনপুট/আউটপুট</button>
+                <button class="tab-button" data-tab="actions">অ্যাকশনস</button>
+            </div>
+
+            <!-- Editor Container -->
+            <div class="tab-content" id="editor-tab">
+                <section class="editor-container">
+                    <div class="section-header">
+                        <h2><i class="fas fa-code"></i> সি কোড লিখুন</h2>
+                        <div class="code-actions">
+                            <button class="btn" title="Clear Code" onclick="clearCode()">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="btn" title="Save Code" onclick="saveCode()">
+                                <i class="fas fa-save"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="editor-wrapper">
+                        <div class="line-numbers" id="lineNumbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10</div>
+                        <textarea class="code-editor" id="code-editor" spellcheck="false" oninput="updateLineNumbers()">#include &lt;stdio.h&gt;
 
 int main() {
-    printf("Hello, World!");
+    int num;
+    printf("একটি সংখ্যা ইনপুট দিন: ");
+    scanf("%d", &num);
+    printf("আপনি ইনপুট দিয়েছেন: %d\n", num);
     return 0;
 }</textarea>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Input/Output Container -->
+            <div class="tab-content" id="input-output-tab" style="display: none;">
+                <div class="input-output-container">
+                    <section class="input-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-keyboard"></i> ইনপুট (ঐচ্ছিক)</h2>
+                        </div>
+                        <textarea class="user-input" id="user-input" placeholder="প্রোগ্রামটির জন্য প্রয়োজনীয় ইনপুট এখানে দিন..."></textarea>
+                    </section>
+
+                    <section class="output-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-terminal"></i> আউটপুট</h2>
+                            <div class="code-actions">
+                                <button class="btn" title="Clear Output" onclick="clearOutput()">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <pre class="output" id="output">এখানে আপনার কোডের আউটপুট দেখানো হবে...</pre>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Actions Container -->
+            <div class="tab-content" id="actions-tab" style="display: none;">
+                <div class="actions-section">
+                    <button class="action-btn" onclick="runCode()">
+                        <i class="fas fa-play"></i>
+                        <span>রান</span>
+                    </button>
+                    <button class="action-btn" onclick="shareCode()">
+                        <i class="fas fa-share-alt"></i>
+                        <span>শেয়ার</span>
+                    </button>
+                    <button class="action-btn" onclick="downloadCode()">
+                        <i class="fas fa-download"></i>
+                        <span>ডাউনলোড</span>
+                    </button>
+                    <button class="action-btn" onclick="formatCode()">
+                        <i class="fas fa-indent"></i>
+                        <span>ফরম্যাট</span>
+                    </button>
+                </div>
             </div>
         </main>
-        <div class="io-panel">
-            <div class="tabs">
-                <div class="tab active" data-tab="input">ইনপুট</div>
-                <div class="tab" data-tab="output">আউটপুট</div>
-            </div>
-            <div id="input" class="tab-content active">
-                <textarea id="user-input" placeholder="এখানে ইনপুট দিন..."></textarea>
-            </div>
-            <div id="output-container" class="tab-content">
-                <pre id="output"></pre>
-            </div>
-        </div>
-        <button class="fab" id="run-button">
-            <i class="fas fa-play"></i>
-        </button>
-    </div>
 
-    <div class="toast" id="toast">
-        <p id="toast-message"></p>
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© ২০২৩ টার্মাক্স সি কম্পাইলার | তৈরি עם <i class="fas fa-heart" style="color: #ef4444;"></i></p>
+        </footer>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-code fa-2x" style="color: #6366f1;"></i>
+                <h2>সি কম্পাইলার</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#" class="active"><i class="fas fa-home"></i> হোম</a></li>
+                <li><a href="#"><i class="fas fa-history"></i> ইতিহাস</a></li>
+                <li><a href="#"><i class="fas fa-book"></i> ডকুমেন্টেশন</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i> সেটিংস</a></li>
+                <li><a href="#"><i class="fas fa-question-circle"></i> সাহায্য</a></li>
+            </ul>
+        </aside>
+
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Toast Notification -->
+        <div class="toast" id="toast">
+            <i class="fas fa-check-circle"></i>
+            <span id="toastMessage">অপারেশন সফলভাবে সম্পন্ন হয়েছে</span>
+        </div>
     </div>
 
     <script>
+        // DOM Elements
         const codeEditor = document.getElementById('code-editor');
-        const lineNumbers = document.getElementById('line-numbers');
-        const runButton = document.getElementById('run-button');
         const userInput = document.getElementById('user-input');
-        const output = document.getElementById('output');
-        const tabs = document.querySelectorAll('.tab');
-        const tabContents = document.querySelectorAll('.tab-content');
+        const outputElement = document.getElementById('output');
+        const themeToggle = document.getElementById('themeToggle');
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
         const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toast-message');
+        const toastMessage = document.getElementById('toastMessage');
+        const lineNumbers = document.getElementById('lineNumbers');
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabContents = document.querySelectorAll('.tab-content');
 
-        const updateLineNumbers = () => {
-            const lines = codeEditor.value.split('\n').length;
-            lineNumbers.innerHTML = Array.from({ length: lines }, (_, i) => i + 1).join('<br>');
-        };
+        // Theme Toggle
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-theme');
+            if (document.body.classList.contains('light-theme')) {
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                showToast('লাইট মোড সক্রিয় করা হয়েছে');
+            } else {
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                showToast('ডার্ক মোড সক্রিয় করা হয়েছে');
+            }
+        });
 
-        const showToast = (message, type = 'success') => {
-            toastMessage.textContent = message;
-            toast.className = `toast show ${type}`;
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        };
+        // Mobile Menu Toggle
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('open');
+        });
 
-        const handleRunCode = () => {
-            output.textContent = "আপনার কোডটি রান হচ্ছে...";
-            // This is a dummy function. Replace with actual API call.
-            setTimeout(() => {
-                output.textContent = `ইনপুট:\n${userInput.value}\n\nআউটপুট:\nHello, World!`;
-                showToast("কোড সফলভাবে রান হয়েছে!", 'success');
-            }, 1000);
-        };
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('open');
+        });
 
-        codeEditor.addEventListener('input', updateLineNumbers);
-        runButton.addEventListener('click', handleRunCode);
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(item => item.classList.remove('active'));
-                tab.classList.add('active');
-
-                const target = document.getElementById(tab.dataset.tab === 'output' ? 'output-container' : 'input');
-                tabContents.forEach(content => content.classList.remove('active'));
-                target.classList.add('active');
+        // Tab Navigation
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                
+                // Update active tab button
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Show selected tab content
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
+                });
+                document.getElementById(`${tabId}-tab`).style.display = 'block';
             });
         });
 
-        // Theme switcher logic
-        const themeSwitch = document.getElementById('checkbox');
-        const currentTheme = localStorage.getItem('theme');
-
-        if (currentTheme) {
-            document.documentElement.setAttribute('data-theme', currentTheme);
-            if (currentTheme === 'dark') {
-                themeSwitch.checked = true;
+        // Update line numbers
+        function updateLineNumbers() {
+            const lines = codeEditor.value.split('\n');
+            let lineNumbersText = '';
+            for (let i = 1; i <= lines.length; i++) {
+                lineNumbersText += i + '<br>';
             }
+            lineNumbers.innerHTML = lineNumbersText;
+            
+            // Add more lines if needed
+            if (lines.length < 10) {
+                for (let i = lines.length + 1; i <= 10; i++) {
+                    lineNumbersText += i + '<br>';
+                }
+            }
+            lineNumbers.innerHTML = lineNumbersText;
         }
 
-        function switchTheme(e) {
-            if (e.target.checked) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            toastMessage.textContent = message;
+            toast.className = 'toast show';
+            if (type === 'error') {
+                toast.classList.add('error');
+                toast.querySelector('i').className = 'fas fa-exclamation-circle';
+            } else if (type === 'warning') {
+                toast.classList.add('warning');
+                toast.querySelector('i').className = 'fas fa-exclamation-triangle';
             } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-                localStorage.setItem('theme', 'light');
+                toast.querySelector('i').className = 'fas fa-check-circle';
+            }
+            
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        // Clear code editor
+        function clearCode() {
+            codeEditor.value = '';
+            updateLineNumbers();
+            showToast('কোড ক্লিয়ার করা হয়েছে');
+        }
+
+        // Clear output
+        function clearOutput() {
+            outputElement.textContent = '';
+            showToast('আউটপুট ক্লিয়ার করা হয়েছে');
+        }
+
+        // Format code (simple indentation)
+        function formatCode() {
+            // This is a simple formatter for demonstration
+            codeEditor.value = codeEditor.value.replace(/\t/g, '    ');
+            showToast('কোড ফরম্যাট করা হয়েছে');
+        }
+
+        // Save code to local storage
+        function saveCode() {
+            localStorage.setItem('savedCode', codeEditor.value);
+            showToast('কোড সেভ করা হয়েছে');
+        }
+
+        // Download code as file
+        function downloadCode() {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(codeEditor.value));
+            element.setAttribute('download', 'program.c');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+            showToast('কোড ডাউনলোড করা হয়েছে');
+        }
+
+        // Share code
+        function shareCode() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'C Program',
+                    text: 'Check out this C program I wrote!',
+                    url: window.location.href
+                })
+                .then(() => showToast('কোড শেয়ার করা হয়েছে'))
+                .catch(error => showToast('শেয়ারিং বাতিল করা হয়েছে', 'warning'));
+            } else {
+                showToast('আপনার ব্রাউজার শেয়ারিং সাপোর্ট করে না', 'error');
             }
         }
 
-        themeSwitch.addEventListener('change', switchTheme, false);
-        
-        // Persist code in local storage
-        codeEditor.value = localStorage.getItem('c-code') || codeEditor.value;
-        codeEditor.addEventListener('keyup', () => {
-            localStorage.setItem('c-code', codeEditor.value);
-        });
+        // Run code
+        async function runCode() {
+            const code = codeEditor.value;
+            const input = userInput.value;
+            
+            if (!code.trim()) {
+                showToast('কোড লেখার বক্সটি খালি। অনুগ্রহ করে C কোড লিখুন।', 'error');
+                return;
+            }
+            
+            outputElement.classList.remove('output-error');
+            outputElement.textContent = 'কোড রান হচ্ছে...';
+            
+            try {
+                // Simulate compilation and execution
+                // In a real app, you would send this to a server or use WebAssembly
+                setTimeout(() => {
+                    if (code.includes('error') || code.includes('Error')) {
+                        outputElement.classList.add('output-error');
+                        outputElement.textContent = 'ত্রুটি: undefined reference to `error\'\ncompilation terminated.';
+                        showToast('কোড রানে ত্রুটি হয়েছে', 'error');
+                    } else {
+                        outputElement.textContent = 'একটি সংখ্যা ইনপুট দিন: 5\nআপনি ইনপুট দিয়েছেন: 5';
+                        showToast('কোড সফলভাবে রান হয়েছে');
+                    }
+                }, 1500);
 
-        updateLineNumbers();
+            } catch (err) {
+                outputElement.classList.add('output-error');
+                outputElement.textContent = 'সার্ভারের সাথে সংযোগ স্থাপন করা যায়নি। সার্ভার কি চালু আছে?\n' + err;
+                showToast('সার্ভার সংযোগ ত্রুটি', 'error');
+            }
+        }
+
+        // Load saved code from local storage
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedCode = localStorage.getItem('savedCode');
+            if (savedCode) {
+                codeEditor.value = savedCode;
+            }
+            updateLineNumbers();
+            
+            // Add touch events for better mobile interaction
+            document.querySelectorAll('button').forEach(button => {
+                button.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.95)';
+                });
+                
+                button.addEventListener('touchend', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        });
     </script>
 </body>
 </html>
