@@ -1,0 +1,19 @@
+# ----------[.github/workflows/keep-alive.yml]----------
+name: Keep Render Service Alive
+
+on:
+  schedule:
+    # cron জবটি প্রতি ১৪ মিনিট পর পর চলবে (0, 14, 28, 42, 56 মিনিটে)
+    - cron: '*/14 * * * *'
+  # এই অংশটি যোগ করলে আপনি ডিবাগ করার জন্য ম্যানুয়ালিও চালাতে পারবেন
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping the service URL to keep it alive
+        # --fail ফ্ল্যাগটি ব্যবহার করা হয়েছে। যদি সাইটটি 4xx বা 5xx এরর দেয়,
+        # তাহলে এই কমান্ডটি ব্যর্থ হবে এবং GitHub Action লাল ক্রস দেখাবে।
+        run: curl --fail -sS https://online-c-compiler-jxeb.onrender.com/ > /dev/null
