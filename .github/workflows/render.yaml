@@ -1,7 +1,20 @@
-services:
-  - type: web
-    name: online-c-compiler
-    env: docker
-    plan: free
-    dockerfilePath: ./Dockerfile
-    healthCheckPath: /
+# ----------[.github/workflows/deploy-to-render.yml]----------
+name: Deploy to Render
+
+# এই 워크플로우 কখন চলবে তা নির্ধারণ করা হচ্ছে
+# main ব্রাঞ্চে কোনো কোড পুশ করা হলেই এটি ট্রিগার হবে
+on:
+  push:
+    branches:
+      - main
+
+# 워크플로우-এর কাজগুলো এখানে 정의 করা হয়েছে
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # একটি লিনাক্স পরিবেশে জবটি চলবে
+
+    steps:
+      # ধাপ ১: GitHub-কে জানানো হচ্ছে যে Render-কে ডিপ্লয় করার জন্য একটি সিগন্যাল পাঠাতে হবে
+      - name: Trigger Render Deploy
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
