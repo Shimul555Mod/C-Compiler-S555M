@@ -1,0 +1,355 @@
+<!-- ----------[templates/index.html]---------- -->
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced C Compiler</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CodeMirror লাইব্রেরি (CSS এবং JS) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/material-darker.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/clike/clike.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #1a1b26;
+            --editor-bg: #24283b;
+            --panel-bg: #1f2335;
+            --text-color: #c0caf5;
+            --accent-color: #7aa2f7;
+            --green-color: #9ece6a;
+            --red-color: #f7768e;
+            --border-color: #414868;
+            --font-main: 'Roboto', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .main-container {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            gap: 1rem;
+            flex-grow: 1;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: 300;
+            color: var(--accent-color);
+        }
+        .controls { display: flex; align-items: center; gap: 1rem; }
+        .control-group { display: flex; flex-direction: column; }
+        .control-group label {
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+        select {
+            background-color: var(--panel-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 0.5rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 5px rgba(122, 162, 247, 0.4);
+        }
+        #run-btn {
+            background-color: var(--green-color);
+            color: #1a1b26;
+            padding: 0.6rem 2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        #run-btn:hover:not(:disabled) {
+            background-color: #b9f27c;
+            transform: translateY(-2px);
+        }
+        #run-btn:disabled {
+            background-color: #545c7e;
+            cursor: not-allowed;
+        }
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(26, 27, 38, 0.5);
+            border-top-color: #1a1b26;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .hidden { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            height: 55vh; /* উচ্চতা নির্ধারণ করা হয়েছে */
+        }
+        .editor-container {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            height: 100%;
+        }
+        /* CodeMirror স্টাইলিং */
+        .CodeMirror {
+            height: 100%;
+            font-family: var(--font-code);
+            font-size: 16px;
+            background: var(--editor-bg);
+            color: var(--text-color);
+        }
+        .CodeMirror-gutters { background: var(--editor-bg) !important; border-right: 1px solid var(--border-color); }
+        .CodeMirror-cursor { border-left: 1px solid var(--text-color); }
+        .io-panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            min-height: 25vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .tabs { display: flex; border-bottom: 1px solid var(--border-color); }
+        .tab-button {
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            color: var(--text-color);
+            opacity: 0.7;
+            font-size: 1rem;
+            transition: opacity 0.3s, color 0.3s, border-bottom 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button.active {
+            opacity: 1;
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+        }
+        .tab-content {
+            padding: 1rem;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .tab-pane { display: none; height: 100%;}
+        .tab-pane.active { display: block; }
+        #user-input {
+            width: 100%;
+            height: calc(25vh - 5rem);
+            background-color: var(--editor-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 16px;
+            font-family: var(--font-code);
+            resize: none;
+        }
+        #output-display {
+            font-family: var(--font-code);
+            font-size: 16px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            height: 100%;
+        }
+        .output-error { color: var(--red-color); }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <header>
+            <h1 class="header-title">Advanced C Compiler</h1>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="c-standard">C Standard</label>
+                    <select id="c-standard">
+                        <option value="c17" selected>C17</option>
+                        <option value="c11">C11</option>
+                        <option value="c99">C99</option>
+                        <option value="c2x">C2x (Experimental)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="warnings">Warning Level</label>
+                    <select id="warnings">
+                        <option value="-Wall" selected>Standard (-Wall)</option>
+                        <option value="-Wextra">Extra (-Wextra)</option>
+                        <option value="-Wpedantic">Pedantic</option>
+                        <option value="-w">None</option>
+                    </select>
+                </div>
+                <button id="run-btn" onclick="runCode()">
+                    <span id="run-btn-text">Run</span>
+                    <div id="spinner" class="spinner hidden"></div>
+                </button>
+            </div>
+        </header>
+
+        <main>
+            <div class="editor-container">
+                <textarea id="code-editor">#include <stdio.h>
+#include <math.h> // For math functions
+
+int main() {
+    int num;
+    printf("একটি সংখ্যা ইনপুট দিন: ");
+    scanf("%d", &num);
+    printf("আপনি ইনপুট দিয়েছেন: %d\n", num);
+    
+    // একটি গাণিতিক ফাংশন ব্যবহার করে দেখানো হলো
+    printf("সংখ্যাটির বর্গমূল: %.2f\n", sqrt(num));
+    
+    return 0;
+}</textarea>
+            </div>
+        </main>
+        
+        <div class="io-panel">
+            <div class="tabs">
+                <button class="tab-button active" onclick="openTab(event, 'output-tab')">Output</button>
+                <button class="tab-button" onclick="openTab(event, 'input-tab')">Input</button>
+            </div>
+            <div id="output-tab" class="tab-content tab-pane active">
+                <pre id="output-display">এখানে আপনার কোডের আউটপুট দেখানো হবে...</pre>
+            </div>
+            <div id="input-tab" class="tab-content tab-pane">
+                <textarea id="user-input" placeholder="scanf() এর জন্য প্রয়োজনীয় ইনপুট এখানে দিন..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CodeMirror এডিটর চালু করা হচ্ছে
+        const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+            lineNumbers: true,
+            mode: "text/x-csrc",
+            theme: "material-darker",
+            autofocus: true,
+            matchBrackets: true,
+        });
+
+        const outputElement = document.getElementById('output-display');
+        const runButton = document.getElementById('run-btn');
+        const runButtonText = document.getElementById('run-btn-text');
+        const spinner = document.getElementById('spinner');
+
+        async function runCode() {
+            const code = editor.getValue(); // CodeMirror থেকে কোড নেওয়া
+            const userInput = document.getElementById('user-input').value;
+            const standard = document.getElementById('c-standard').value;
+            const warnings = document.getElementById('warnings').value;
+            
+            outputElement.classList.remove('output-error');
+            outputElement.textContent = 'কম্পাইল এবং রান করা হচ্ছে...';
+            runButton.disabled = true;
+            runButtonText.textContent = 'Processing';
+            spinner.classList.remove('hidden');
+            
+            // রান করার আগে আউটপুট ট্যাব চালু করা হচ্ছে
+            openTab(null, 'output-tab', true);
+
+            try {
+                const response = await fetch('/compile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        code: code, 
+                        input: userInput,
+                        standard: standard,
+                        warnings: warnings
+                    })
+                });
+
+                const result = await response.json();
+                
+                // প্রথমে এরর চেক করা হচ্ছে
+                if (result.error && result.output) {
+                     // কম্পাইলেশন বা রানটাইম এরর
+                    outputElement.classList.add('output-error');
+                    outputElement.textContent = result.error;
+                    // যদি কিছু আউটপুট তৈরি হয়ে থাকে, সেটাও দেখানো হচ্ছে
+                    if(result.output) {
+                       outputElement.textContent = result.output + "\n\n--- এরর ---\n" + result.error;
+                    }
+                } else if(result.error){
+                    outputElement.classList.add('output-error');
+                    outputElement.textContent = result.error;
+                }
+                else {
+                    // সফলভাবে রান হলে
+                    outputElement.classList.remove('output-error');
+                    outputElement.textContent = result.output || 'প্রোগ্রামটি কোনো আউটপুট দেয়নি।';
+                }
+
+            } catch (err) {
+                outputElement.classList.add('output-error');
+                outputElement.textContent = 'ফ্রন্টএন্ড এরর: সার্ভারের সাথে সংযোগ স্থাপন করা যায়নি। সার্ভার কি চালু আছে?\n' + err;
+            } finally {
+                runButton.disabled = false;
+                runButtonText.textContent = 'Run';
+                spinner.classList.add('hidden');
+            }
+        }
+        
+        // Input/Output ট্যাব পরিবর্তনের জন্য ফাংশন
+        function openTab(evt, tabName, forceOpen = false) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-pane");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            
+            if (forceOpen) {
+                // নির্দিষ্ট ট্যাবের বাটনকে active করা
+                const activeButton = Array.from(tablinks).find(btn => btn.getAttribute('onclick').includes(tabName));
+                if(activeButton) activeButton.className += " active";
+            } else if (evt) {
+                evt.currentTarget.className += " active";
+            }
+        }
+        
+        // ডিফল্টভাবে প্রথম ট্যাব চালু রাখা
+        document.querySelector(".tab-button").click();
+    </script>
+</body>
+</html>
