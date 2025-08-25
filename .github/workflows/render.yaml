@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: online-c-compiler
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
