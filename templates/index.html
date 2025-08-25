@@ -6,7 +6,6 @@
     <title>Advanced Termux C Compiler</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <style>
         :root {
             --primary: #6366f1;
@@ -489,6 +488,33 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Compilation status */
+        .compilation-status {
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .status-indicator.error {
+            background: var(--danger);
+        }
+
+        .status-indicator.warning {
+            background: var(--warning);
+        }
+
         /* Theme variants */
         body.light-theme {
             --dark: #f3f4f6;
@@ -543,33 +569,6 @@
                 grid-template-columns: repeat(4, 1fr);
             }
         }
-
-        /* Compilation status */
-        .compilation-status {
-            padding: 10px 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            font-family: 'Fira Code', monospace;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--success);
-        }
-
-        .status-indicator.error {
-            background: var(--danger);
-        }
-
-        .status-indicator.warning {
-            background: var(--warning);
-        }
     </style>
 </head>
 <body>
@@ -619,18 +618,12 @@
                         <div class="line-numbers" id="lineNumbers">1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10</div>
                         <textarea class="code-editor" id="code-editor" spellcheck="false" oninput="updateLineNumbers()">#include &lt;stdio.h&gt;
 
-int main() {
-    // একটি সাধারণ সি প্রোগ্রাম
-    int number;
-    printf("একটি সংখ্যা ইনপুট দিন: ");
-    scanf("%d", &number);
-    
-    if(number % 2 == 0) {
-        printf("%d জোড় সংখ্যা\\n", number);
-    } else {
-        printf("%d বিজোড় সংখ্যা\\n", number);
-    }
-    
+int main(void) {
+    int n = 13;              // দেওয়া সংখ্যা
+    if (n % 2 == 0)
+        printf("%d হল জোড় সংখ্যা\n", n);
+    else
+        printf("%d হল বিজোড় সংখ্যা\n", n);
     return 0;
 }</textarea>
                     </div>
@@ -648,7 +641,7 @@ int main() {
                         <div class="section-header">
                             <h2><i class="fas fa-keyboard"></i> ইনপুট (ঐচ্ছিক)</h2>
                         </div>
-                        <textarea class="user-input" id="user-input" placeholder="প্রোগ্রামটির জন্য প্রয়োজনীয় ইনপুট এখানে দিন...">5</textarea>
+                        <textarea class="user-input" id="user-input" placeholder="প্রোগ্রামটির জন্য প্রয়োজনীয় ইনপুট এখানে দিন..."></textarea>
                     </section>
 
                     <section class="output-section">
@@ -702,7 +695,7 @@ int main() {
 
         <!-- Footer -->
         <footer class="footer">
-            <p>© ২০২৩ টার্মাক্স সি কম্পাইলার | তৈরি עם <i class="fas fa-heart" style="color: #ef4444;"></i></p>
+            <p>© ২০২৩ টার্মাক্স সি কম্পাইলার | তৈরি সঙ্গে <i class="fas fa-heart" style="color: #ef4444;"></i></p>
         </footer>
 
         <!-- Sidebar -->
@@ -982,7 +975,9 @@ int main() {
                         
                         for (const match of printfMatches) {
                             const message = match.replace(/printf\(["']/, '').replace(/["']\)/, '');
-                            output += message + '\n';
+                            // Replace escape sequences
+                            const formattedMessage = message.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+                            output += formattedMessage;
                         }
                     }
                     
@@ -994,24 +989,12 @@ int main() {
                     }
                     
                     // Add specific behavior for common patterns
-                    if (code.includes('%d') && inputLines.length > 0) {
-                        const num = parseInt(inputLines[0]);
-                        if (!isNaN(num)) {
-                            if (code.includes('জোড়') || code.includes('even')) {
-                                output += num % 2 === 0 ? `${num} জোড় সংখ্যা\n` : `${num} বিজোড় সংখ্যা\n`;
-                            }
-                            
-                            if (code.includes('ফিবোনাচি') || code.includes('Fibonacci')) {
-                                output += 'ফিবোনাচি সিরিজ: ';
-                                let a = 0, b = 1;
-                                for (let i = 0; i < num; i++) {
-                                    output += a + ' ';
-                                    const next = a + b;
-                                    a = b;
-                                    b = next;
-                                }
-                                output += '\n';
-                            }
+                    if (code.includes('n % 2 == 0')) {
+                        // Check if the code is checking for even/odd
+                        const nMatch = code.match(/int\s+(\w+)\s*=\s*(\d+)/);
+                        if (nMatch) {
+                            const n = parseInt(nMatch[2]);
+                            output += n % 2 === 0 ? `${n} হল জোড় সংখ্যা\n` : `${n} হল বিজোড় সংখ্যা\n`;
                         }
                     }
                     
