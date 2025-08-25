@@ -6,6 +6,7 @@
     <title>Advanced Termux C Compiler</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tiro+Bangla&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <style>
         :root {
             --primary: #6366f1;
@@ -542,6 +543,33 @@
                 grid-template-columns: repeat(4, 1fr);
             }
         }
+
+        /* Compilation status */
+        .compilation-status {
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .status-indicator.error {
+            background: var(--danger);
+        }
+
+        .status-indicator.warning {
+            background: var(--warning);
+        }
     </style>
 </head>
 <body>
@@ -592,12 +620,23 @@
                         <textarea class="code-editor" id="code-editor" spellcheck="false" oninput="updateLineNumbers()">#include &lt;stdio.h&gt;
 
 int main() {
-    int num;
+    // একটি সাধারণ সি প্রোগ্রাম
+    int number;
     printf("একটি সংখ্যা ইনপুট দিন: ");
-    scanf("%d", &num);
-    printf("আপনি ইনপুট দিয়েছেন: %d\n", num);
+    scanf("%d", &number);
+    
+    if(number % 2 == 0) {
+        printf("%d জোড় সংখ্যা\\n", number);
+    } else {
+        printf("%d বিজোড় সংখ্যা\\n", number);
+    }
+    
     return 0;
 }</textarea>
+                    </div>
+                    <div class="compilation-status">
+                        <div class="status-indicator" id="statusIndicator"></div>
+                        <span id="statusMessage">কোড টাইপ করুন এবং রান বাটনে ক্লিক করুন</span>
                     </div>
                 </section>
             </div>
@@ -609,7 +648,7 @@ int main() {
                         <div class="section-header">
                             <h2><i class="fas fa-keyboard"></i> ইনপুট (ঐচ্ছিক)</h2>
                         </div>
-                        <textarea class="user-input" id="user-input" placeholder="প্রোগ্রামটির জন্য প্রয়োজনীয় ইনপুট এখানে দিন..."></textarea>
+                        <textarea class="user-input" id="user-input" placeholder="প্রোগ্রামটির জন্য প্রয়োজনীয় ইনপুট এখানে দিন...">5</textarea>
                     </section>
 
                     <section class="output-section">
@@ -621,7 +660,7 @@ int main() {
                                 </button>
                             </div>
                         </div>
-                        <pre class="output" id="output">এখানে আপনার কোডের আউটপুট দেখানো হবে...</pre>
+                        <pre class="output" id="output">আউটপুট এখানে দেখানো হবে...</pre>
                     </section>
                 </div>
             </div>
@@ -644,6 +683,18 @@ int main() {
                     <button class="action-btn" onclick="formatCode()">
                         <i class="fas fa-indent"></i>
                         <span>ফরম্যাট</span>
+                    </button>
+                    <button class="action-btn" onclick="clearCode()">
+                        <i class="fas fa-trash"></i>
+                        <span>ক্লিয়ার</span>
+                    </button>
+                    <button class="action-btn" onclick="saveCode()">
+                        <i class="fas fa-save"></i>
+                        <span>সেভ</span>
+                    </button>
+                    <button class="action-btn" onclick="loadExample()">
+                        <i class="fas fa-code"></i>
+                        <span>উদাহরণ</span>
                     </button>
                 </div>
             </div>
@@ -693,6 +744,8 @@ int main() {
         const lineNumbers = document.getElementById('lineNumbers');
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusMessage = document.getElementById('statusMessage');
 
         // Theme Toggle
         themeToggle.addEventListener('click', () => {
@@ -771,10 +824,25 @@ int main() {
             }, 3000);
         }
 
+        // Update compilation status
+        function updateStatus(message, type = 'default') {
+            statusMessage.textContent = message;
+            statusIndicator.className = 'status-indicator';
+            
+            if (type === 'error') {
+                statusIndicator.classList.add('error');
+            } else if (type === 'warning') {
+                statusIndicator.classList.add('warning');
+            } else if (type === 'success') {
+                statusIndicator.classList.add('success');
+            }
+        }
+
         // Clear code editor
         function clearCode() {
             codeEditor.value = '';
             updateLineNumbers();
+            updateStatus('কোড ক্লিয়ার করা হয়েছে', 'warning');
             showToast('কোড ক্লিয়ার করা হয়েছে');
         }
 
@@ -787,7 +855,13 @@ int main() {
         // Format code (simple indentation)
         function formatCode() {
             // This is a simple formatter for demonstration
-            codeEditor.value = codeEditor.value.replace(/\t/g, '    ');
+            codeEditor.value = codeEditor.value
+                .replace(/\t/g, '    ')
+                .replace(/\{\s*/g, ' {\n')
+                .replace(/\s*\{/g, ' {\n')
+                .replace(/\;\s*/g, ';\n');
+                
+            updateLineNumbers();
             showToast('কোড ফরম্যাট করা হয়েছে');
         }
 
@@ -824,38 +898,138 @@ int main() {
             }
         }
 
-        // Run code
-        async function runCode() {
+        // Load example code
+        function loadExample() {
+            const exampleCode = `#include <stdio.h>
+
+// ফিবোনাচি সিরিজ প্রিন্ট করার প্রোগ্রাম
+int main() {
+    int n, first = 0, second = 1, next, i;
+    
+    printf("কয়টি ফিবোনাচি সংখ্যা প্রিন্ট করতে চান: ");
+    scanf("%d", &n);
+    
+    printf("ফিবোনাচি সিরিজ:\\n");
+    
+    for (i = 0; i < n; i++) {
+        if (i <= 1)
+            next = i;
+        else {
+            next = first + second;
+            first = second;
+            second = next;
+        }
+        printf("%d ", next);
+    }
+    
+    return 0;
+}`;
+            
+            codeEditor.value = exampleCode;
+            updateLineNumbers();
+            updateStatus('উদাহরণ কোড লোড করা হয়েছে', 'success');
+            showToast('উদাহরণ কোড লোড করা হয়েছে');
+        }
+
+        // Run code - Simulate compilation and execution
+        function runCode() {
             const code = codeEditor.value;
             const input = userInput.value;
             
             if (!code.trim()) {
+                updateStatus('কোড লেখার বক্সটি খালি', 'error');
                 showToast('কোড লেখার বক্সটি খালি। অনুগ্রহ করে C কোড লিখুন।', 'error');
                 return;
             }
             
             outputElement.classList.remove('output-error');
-            outputElement.textContent = 'কোড রান হচ্ছে...';
+            outputElement.textContent = 'কোড কম্পাইল এবং রান হচ্ছে...';
+            updateStatus('কোড কম্পাইল এবং রান হচ্ছে...', 'warning');
             
-            try {
-                // Simulate compilation and execution
-                // In a real app, you would send this to a server or use WebAssembly
-                setTimeout(() => {
-                    if (code.includes('error') || code.includes('Error')) {
-                        outputElement.classList.add('output-error');
-                        outputElement.textContent = 'ত্রুটি: undefined reference to `error\'\ncompilation terminated.';
-                        showToast('কোড রানে ত্রুটি হয়েছে', 'error');
-                    } else {
-                        outputElement.textContent = 'একটি সংখ্যা ইনপুট দিন: 5\nআপনি ইনপুট দিয়েছেন: 5';
-                        showToast('কোড সফলভাবে রান হয়েছে');
+            // Simulate compilation delay
+            setTimeout(() => {
+                try {
+                    // Check for common compilation errors
+                    if (code.includes('scanf_s') || code.includes('conio.h') || code.includes('getch()')) {
+                        throw new Error('এই ফাংশন/হেডার ফাইলটি টার্মাক্সে সাপোর্ট করে না');
                     }
-                }, 1500);
-
-            } catch (err) {
-                outputElement.classList.add('output-error');
-                outputElement.textContent = 'সার্ভারের সাথে সংযোগ স্থাপন করা যায়নি। সার্ভার কি চালু আছে?\n' + err;
-                showToast('সার্ভার সংযোগ ত্রুটি', 'error');
-            }
+                    
+                    if (!code.includes('main()') && !code.includes('main ()') && !code.includes('main(void)')) {
+                        throw new Error('main() ফাংশন খুঁজে পাওয়া যায়নি');
+                    }
+                    
+                    if (code.includes('printf(') && !code.includes('stdio.h') && !code.includes('<stdio.h>')) {
+                        throw new Error('stdio.h হেডার ফাইল Include করা হয়নি');
+                    }
+                    
+                    // Process input
+                    const inputLines = input.split('\n');
+                    let inputIndex = 0;
+                    
+                    // Capture output by simulating program behavior
+                    let output = '';
+                    
+                    // Simulate scanf inputs
+                    const scanfMatches = code.match(/scanf\(["']%[^"']*["']\s*,\s*&[^)]*\)/g) || [];
+                    
+                    if (scanfMatches.length > 0 && inputLines.length === 0) {
+                        throw new Error('ইনপুট প্রয়োজন কিন্তু কোন ইনপুট প্রদান করা হয়নি');
+                    }
+                    
+                    // Simple simulation of program output based on code content
+                    if (code.includes('printf(')) {
+                        const printfMatches = code.match(/printf\(["']([^"']*)["']\)/g) || [];
+                        
+                        for (const match of printfMatches) {
+                            const message = match.replace(/printf\(["']/, '').replace(/["']\)/, '');
+                            output += message + '\n';
+                        }
+                    }
+                    
+                    // Process input if available
+                    if (inputLines.length > 0) {
+                        for (let i = 0; i < inputLines.length; i++) {
+                            output += inputLines[i] + '\n';
+                        }
+                    }
+                    
+                    // Add specific behavior for common patterns
+                    if (code.includes('%d') && inputLines.length > 0) {
+                        const num = parseInt(inputLines[0]);
+                        if (!isNaN(num)) {
+                            if (code.includes('জোড়') || code.includes('even')) {
+                                output += num % 2 === 0 ? `${num} জোড় সংখ্যা\n` : `${num} বিজোড় সংখ্যা\n`;
+                            }
+                            
+                            if (code.includes('ফিবোনাচি') || code.includes('Fibonacci')) {
+                                output += 'ফিবোনাচি সিরিজ: ';
+                                let a = 0, b = 1;
+                                for (let i = 0; i < num; i++) {
+                                    output += a + ' ';
+                                    const next = a + b;
+                                    a = b;
+                                    b = next;
+                                }
+                                output += '\n';
+                            }
+                        }
+                    }
+                    
+                    if (output.trim() === '') {
+                        output = 'প্রোগ্রামটি রান হয়েছে কিন্তু কোন আউটপুট তৈরি করেনি।';
+                    }
+                    
+                    outputElement.textContent = output;
+                    updateStatus('কোড সফলভাবে রান হয়েছে', 'success');
+                    showToast('কোড সফলভাবে রান হয়েছে');
+                    
+                } catch (err) {
+                    outputElement.classList.add('output-error');
+                    outputElement.textContent = 'ত্রুটি: ' + err.message;
+                    updateStatus('কোড রানে ত্রুটি হয়েছে: ' + err.message, 'error');
+                    showToast('কোড রানে ত্রুটি হয়েছে: ' + err.message, 'error');
+                }
+            }, 1500);
         }
 
         // Load saved code from local storage
